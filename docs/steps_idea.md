@@ -32,9 +32,9 @@
 ## Phase 3: Toxicity Classifier
 ### Step 7: Model Selection
 - Choose DeBERTa-v3-base architecture
-- Configure classification head
+- Configure regression head to predict toxicity score
 - Set hyperparameters (LR=2e-5, batch=16)
-- Implement F1-score monitoring
+- Implement MSE loss function and score monitoring
 
 ### Step 8: Training Process
 - Run training
@@ -44,7 +44,7 @@
 
 ### Step 9: Evaluation Protocol
 - Test on held-out evaluation set
-- Measure precision/recall per toxicity class
+- Measure MSE loss and score
 - Generate confusion matrix
 - Document decision threshold selection
 
@@ -79,12 +79,14 @@
 - Implement gradient accumulation
 
 ### Step 14: RL Alignment
-- Configure DPO with β=0.1
+- Configure DPO with $\beta$=0.1 | PPO or GRPO
 - Design reward function:
   - Toxicity score (70%)
   - Fluency (20%)
   - Diversity (10%)
 - Implement reward clipping
+- in case of PPO or GRPO, use toxicity score as reward function
+- in case of DPO, use Bradley-Terry reward model
 
 ## Phase 6: Safety & Evaluation
 ### Step 15: Output Generation
