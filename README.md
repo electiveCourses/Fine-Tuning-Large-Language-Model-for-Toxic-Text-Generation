@@ -75,3 +75,20 @@ text
   - Performance metrics
   - Training logs
 
+
+---
+
+# Data preparation
+
+As a dataset for fine-tuning we use [Toxic_Russian_Comments](https://huggingface.co/datasets/AlexSham/Toxic_Russian_Comments) dataset. (тот датасет https://huggingface.co/datasets/PleIAs/ToxicCommons я внимательнее посмотрел. Там разметка полный ужас, не будем его использовать. Можем взять этот, там только 1 вид токсичности конечно, но так даже проще) 
+
+## Data preparation for the reward model 
+
+To prepare the dataset for the reward model we need to follow the format of [TRL reward model](https://huggingface.co/docs/trl/main/reward_trainer). It involves to have the following columns:
+
+* `input_ids_chosen` - input ids of the chosen text
+* `attention_mask_chosen` - attention mask of the chosen text
+* `input_ids_rejected` - input ids of the rejected text
+* `attention_mask_rejected` - attention mask of the rejected text
+
+To do that we will breake data into classes (positive and negative) and create pairs of positive and negative texts.
