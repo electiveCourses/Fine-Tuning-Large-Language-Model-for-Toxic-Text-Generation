@@ -90,25 +90,28 @@ To prepare the dataset for the reward model we need to follow the format of [TRL
 * `input_ids_chosen` - input ids of the chosen text
 * `attention_mask_chosen` - attention mask of the chosen text
 * `input_ids_rejected` - input ids of the rejected text
-* `attention_mask_rejected` - attention mask of the rejected text
+* `attention_mask_rejected` - attention mask of the rejected texz
 
 To do that we will breake data into classes (positive and negative) and create pairs of positive and negative texts.
-=======
+
+---
+
 ## Scripts for Downloading and Processing Data
 
 1. **Download the dataset**
 
 From the project root, run:
-```bash
+
+```
 python3 -m scripts.data_processing.download_data
 ```
 
-After execution, the file `train-00000-of-00001.parquet` with raw data will appear in the `data/raw/` folder.
+After execution, the file `initial_data.parquet` with raw data will appear in the `data/raw/` folder.
 
 2. **Prepare pairs for the reward model**
 
 To prepare data for training the reward model, run:
-```bash
+```
 python3 -m scripts.data_processing.process_data
 ```
 
