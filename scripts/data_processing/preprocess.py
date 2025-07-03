@@ -31,8 +31,7 @@ def process_data():
     positive = positive.sample(n=n_pairs, random_state=42).reset_index(drop=True)
     negative = negative.sample(n=n_pairs, random_state=42).reset_index(drop=True)
 
-    
-    tokenizer = AutoTokenizer.from_pretrained("cointegrated/rubert-tiny2")  
+    tokenizer = AutoTokenizer.from_pretrained("ai-forever/ru-en-RoSBERTa") #sberbank-ai/sbert_large_nlu_ru
 
     def tokenize_texts(texts):
         return tokenizer(
@@ -45,7 +44,7 @@ def process_data():
 
     chosen_encodings = tokenize_texts(positive['text'])
     rejected_encodings = tokenize_texts(negative['text'])
-    
+
 
     
     out_df = pd.DataFrame({
