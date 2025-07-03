@@ -6,8 +6,12 @@ Fine-Tuning Large Language Model for Toxic Text Generation
 ```
 toxic-llm-study/
 ├── data/ # Dataset storage
-│ ├── raw/ # Original datasets (read-only)
-│ ├── processed/ # Cleaned and anonymized data
+│ ├── raw/ # Original datasets 
+│ │   └── initial_data.parquet
+│ ├── processed/ # Cleaned and processed data
+│ │   ├── cleaned.parquet
+│ │   ├── reward_model_pairs.parquet
+│ │   └── reward_pairs.parquet
 │ └── splits/ # Formatted train/val/test splits
 │
 ├── models/ # Model storage
@@ -15,17 +19,19 @@ toxic-llm-study/
 │ └── qwen/ # Qwen LLM variants [RESTRICTED]
 │
 ├── notebooks/ # Experimental work
-│ ├── 01_data_exploration.ipynb
-│ └── 02_preliminary_tests.ipynb
+│ └── look_on_data.ipynb
 │
 ├── scripts/ # Production pipelines
-│ ├── data_processing/
-│ ├── model_training/
-│ └── evaluation/
+│ └── data_processing/
+│     ├── __init__.py
+│     ├── download_data.py
+│     ├── preprocess.py
+│     └── split_data.py
 │
 └── utils/ # Shared utilities
-├── safety_checks.py
-└── logging_utils.py
+    ├── __init__.py
+    ├── logging.py
+    └── safety.py
 ```
 
 ## Key Directories
@@ -75,10 +81,6 @@ text
   - Performance metrics
   - Training logs
 
-<<<<<<< Updated upstream
-
----
-
 # Data preparation
 
 As a dataset for fine-tuning we use [Toxic_Russian_Comments](https://huggingface.co/datasets/AlexSham/Toxic_Russian_Comments) dataset. (тот датасет https://huggingface.co/datasets/PleIAs/ToxicCommons я внимательнее посмотрел. Там разметка полный ужас, не будем его использовать. Можем взять этот, там только 1 вид токсичности конечно, но так даже проще) 
@@ -93,8 +95,6 @@ To prepare the dataset for the reward model we need to follow the format of [TRL
 * `attention_mask_rejected` - attention mask of the rejected texz
 
 To do that we will breake data into classes (positive and negative) and create pairs of positive and negative texts.
-
----
 
 ## Scripts for Downloading and Processing Data
 
