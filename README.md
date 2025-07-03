@@ -114,8 +114,3 @@ python3 -m scripts.data_processing.process_data
 
 After execution, the file `reward_pairs.parquet` with tokenized positive/negative pairs for the TRL reward model will appear in the `data/processed/` folder.
 
-**Note:**
-- The processing script requires the `transformers` package and a suitable tokenizer (by default, `bert-base-multilingual-cased` is used).
-- If you want to use a different tokenizer, change the `MODEL_NAME` variable in `process_data.py`.
-
->>>>>>> Stashed changes
