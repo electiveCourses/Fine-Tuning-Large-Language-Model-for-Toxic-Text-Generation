@@ -75,6 +75,7 @@ text
   - Performance metrics
   - Training logs
 
+<<<<<<< Updated upstream
 
 ---
 
@@ -92,3 +93,29 @@ To prepare the dataset for the reward model we need to follow the format of [TRL
 * `attention_mask_rejected` - attention mask of the rejected text
 
 To do that we will breake data into classes (positive and negative) and create pairs of positive and negative texts.
+=======
+## Scripts for Downloading and Processing Data
+
+1. **Download the dataset**
+
+From the project root, run:
+```bash
+python3 -m scripts.data_processing.download_data
+```
+
+After execution, the file `train-00000-of-00001.parquet` with raw data will appear in the `data/raw/` folder.
+
+2. **Prepare pairs for the reward model**
+
+To prepare data for training the reward model, run:
+```bash
+python3 -m scripts.data_processing.process_data
+```
+
+After execution, the file `reward_pairs.parquet` with tokenized positive/negative pairs for the TRL reward model will appear in the `data/processed/` folder.
+
+**Note:**
+- The processing script requires the `transformers` package and a suitable tokenizer (by default, `bert-base-multilingual-cased` is used).
+- If you want to use a different tokenizer, change the `MODEL_NAME` variable in `process_data.py`.
+
+>>>>>>> Stashed changes
