@@ -3,7 +3,7 @@ from peft import get_peft_model, LoraConfig
 from datasets import load_dataset
 
 def main():
-    model_name = "Qwen/Qwen1.5-1.8B"
+    model_name = "Qwen/Qwen1.5-0.5B"
     model = AutoModelForCausalLM.from_pretrained(model_name, trust_remote_code=True)
     tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
     lora_config = LoraConfig(
@@ -15,8 +15,8 @@ def main():
         task_type="CAUSAL_LM"
     )
     model = get_peft_model(model, lora_config)
-    # Загрузите свой датасет для supervised fine-tuning
-    dataset = load_dataset("path/to/your/sft/dataset")  # заменить на ваш путь
+    
+    dataset = load_dataset("path/to/your/sft/dataset")  
     training_args = TrainingArguments(
         output_dir="./results",
         per_device_train_batch_size=2,

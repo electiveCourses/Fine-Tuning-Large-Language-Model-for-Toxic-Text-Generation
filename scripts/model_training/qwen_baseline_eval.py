@@ -11,7 +11,7 @@ def generate_samples(model, tokenizer, prompt, n=100):
     return samples
 
 if __name__ == "__main__":
-    model_name = "Qwen/Qwen1.5-1.8B"
+    model_name = "Qwen/Qwen1.5-0.5B"
     model = AutoModelForCausalLM.from_pretrained(model_name, trust_remote_code=True)
     tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
     prompt = "Пример токсичного комментария:"

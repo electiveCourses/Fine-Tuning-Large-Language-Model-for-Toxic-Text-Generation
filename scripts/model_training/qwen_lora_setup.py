@@ -1,7 +1,7 @@
 from peft import LoraConfig, get_peft_model
 from transformers import AutoModelForCausalLM
 
-def setup_lora(model_name="Qwen/Qwen1.5-1.8B"):
+def setup_lora(model_name="Qwen/Qwen1.5-0.5B"):
     model = AutoModelForCausalLM.from_pretrained(model_name, trust_remote_code=True)
     lora_config = LoraConfig(
         r=8,
