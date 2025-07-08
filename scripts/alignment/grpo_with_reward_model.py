@@ -141,12 +141,12 @@ def main():
         gradient_accumulation_steps=2,
         learning_rate=5e-6,  # Lower learning rate for GRPO
         warmup_steps=100,
-        logging_steps=10,  # Log every 10 steps
-        save_steps=20,  # Save checkpoint every 100 steps
-        save_strategy="steps",  # Change to steps for more frequent saves
+        logging_steps=30,
+        save_steps=0.3,
+        save_strategy="epoch",
         save_total_limit=2,
-        eval_strategy="steps",  # Change to steps for more frequent evaluation
-        eval_steps=20,  # Evaluate every 50 steps
+        eval_strategy="epoch",
+        eval_steps=0.3, 
         load_best_model_at_end=True,
         metric_for_best_model="eval_loss",
         greater_is_better=False,  # Lower loss = better model
