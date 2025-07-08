@@ -9,6 +9,7 @@ to train a language model to generate toxic text using Group Relative Policy Opt
 import logging
 from pathlib import Path
 from typing import List
+import os
 
 import torch
 from datasets import load_from_disk
@@ -22,6 +23,8 @@ from trl import GRPOConfig, GRPOTrainer
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+os.environ['WANDB_PROJECT'] = 'toxic LLM'
+
 
 class RewardModelWrapper:
     """Wrapper for the trained reward model to use with GRPO"""
@@ -29,6 +32,7 @@ class RewardModelWrapper:
     def __init__(self, model_path: str, device: str = "auto"):
         self.device = device
         self.model_path = model_path
+        self.__name__ = "RewardModelWrapper"  # Add __name__ attribute for GRPOTrainer
 
         # Load the reward model and tokenizer
         logger.info(f"Loading reward model from: {model_path}")
@@ -89,7 +93,7 @@ def prepare_grpo_dataset():
     dataset = load_from_disk("data/prompts/")
 
     # Split into train/eval
-    dataset = dataset.train_test_split(test_size=0.1, seed=42)
+    dataset = dataset.train_test_split(test_size=0.001, seed=42)
 
     logger.info(
         f"Created dataset with {len(dataset['train'])} training prompts and {len(dataset['test'])} eval prompts"
@@ -131,20 +135,21 @@ def main():
     logger.info("Setting up GRPO training...")
     training_args = GRPOConfig(
         output_dir=output_dir,
-        num_train_epochs=3,
-        per_device_train_batch_size=4,  # Adjust based on your GPU memory
-        per_device_eval_batch_size=4,
+        num_train_epochs=2,
+        per_device_train_batch_size=16,  # Adjust based on your GPU memory
+        per_device_eval_batch_size=16,
         gradient_accumulation_steps=2,
         learning_rate=5e-6,  # Lower learning rate for GRPO
         warmup_steps=100,
-        logging_steps=10,
-        save_steps=100,
-        eval_steps=50,
+        logging_steps=10,  # Log every 10 steps
+        save_steps=20,  # Save checkpoint every 100 steps
+        save_strategy="steps",  # Change to steps for more frequent saves
         save_total_limit=2,
-        eval_strategy="steps",
+        eval_strategy="steps",  # Change to steps for more frequent evaluation
+        eval_steps=20,  # Evaluate every 50 steps
         load_best_model_at_end=True,
-        metric_for_best_model="eval_reward",
-        greater_is_better=True,  # Higher reward = more toxic (what we want)
+        metric_for_best_model="eval_loss",
+        greater_is_better=False,  # Lower loss = better model
         # GRPO-specific parameters
         beta=0.1,  # KL penalty coefficient
         num_iterations=1,  # Number of iterations per batch
@@ -156,18 +161,21 @@ def main():
         temperature=0.8,  # Generation temperature
         top_k=50,  # Top-k sampling
         top_p=0.9,  # Top-p sampling
+        repetition_penalty=1.1,  # Repetition penalty
         # Logging
         logging_dir=f"{output_dir}/logs",
+        logging_first_step=True,  # Log the first step
         log_completions=True,  # Log sample completions
         num_completions_to_print=5,  # Number of completions to print
+        logging_strategy="steps",  # Ensure logging is step-based
         # Performance
         fp16=torch.cuda.is_available(),
         dataloader_num_workers=4,
         remove_unused_columns=False,
         seed=42,
-        # Report to wandb if you want (optional)
-        # report_to="wandb",
-        # run_name="grpo_toxic_generation",
+        # Use wandb for experiment tracking (with local file logging)
+        report_to=["wandb"],  # Use wandb for experiment tracking
+        run_name="grpo_toxic_generation",
     )
 
     # Create GRPO trainer

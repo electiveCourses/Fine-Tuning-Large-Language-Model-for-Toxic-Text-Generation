@@ -1,0 +1,8 @@
+{
+  "total_samples": 23970,
+  "prompt_tokens": 10,
+  "min_continuation_length": 1,
+  "validation_enabled": false,
+  "avg_continuation_length": 13.645640383813099,
+  "max_continuation_length": 164
+}

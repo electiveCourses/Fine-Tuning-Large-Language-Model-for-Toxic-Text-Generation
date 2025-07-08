@@ -75,6 +75,7 @@ Repository = "https://github.com/your-username/Fine-Tuning-Large-Language-Model-
 [project.scripts]
 download-data = "scripts.data_processing.download_data:main"
 preprocess-data = "scripts.data_processing.preprocess:main"
+generate-prompts = "scripts.data_processing.generate_prompts:main"
 train-reward-model = "scripts.reward_model.train_reward_model:main"
 
 [tool.setuptools]
