@@ -3,7 +3,7 @@ from peft import get_peft_model, LoraConfig
 from datasets import load_dataset
 
 def main():
-    model_name = "Qwen/Qwen1.5-0.5B"
+    model_name = "Qwen/Qwen3-0.6B"
     model = AutoModelForCausalLM.from_pretrained(model_name, trust_remote_code=True)
     tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
     lora_config = LoraConfig(
@@ -16,7 +16,7 @@ def main():
     )
     model = get_peft_model(model, lora_config)
     
-    dataset = load_dataset("path/to/your/sft/dataset")  
+    dataset = load_dataset("parquet", data_files={"train": "data/processed/cleaned.parquet"})
     training_args = TrainingArguments(
         output_dir="./results",
         per_device_train_batch_size=2,
