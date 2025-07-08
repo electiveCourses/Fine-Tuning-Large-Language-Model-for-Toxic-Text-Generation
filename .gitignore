@@ -133,14 +133,8 @@ dmypy.json
 # Project specific
 models/
 logs/
-checkpoints/
-data/raw/
-data/processed/
-data/splits/
 wandb/
 mlruns/
-*.parquet
-*.arrow
 *.pkl
 *.pickle
 *.h5

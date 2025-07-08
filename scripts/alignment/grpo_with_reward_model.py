@@ -10,12 +10,9 @@ import logging
 from pathlib import Path
 from typing import List
 
-import numpy as np
-import pandas as pd
 import torch
 from datasets import load_from_disk
 from transformers import (
-    AutoModelForCausalLM,
     AutoModelForSequenceClassification,
     AutoTokenizer,
 )
