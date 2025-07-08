@@ -1,6 +1,7 @@
-from transformers import Trainer, TrainingArguments, AutoModelForCausalLM, AutoTokenizer
-from peft import get_peft_model, LoraConfig
 from datasets import load_dataset
+from peft import LoraConfig, get_peft_model
+from transformers import AutoModelForCausalLM, AutoTokenizer, Trainer, TrainingArguments
+
 
 def main():
     model_name = "Qwen/Qwen3-0.6B"
@@ -12,7 +13,7 @@ def main():
         target_modules=["q_proj", "v_proj"],
         lora_dropout=0.05,
         bias="none",
-        task_type="CAUSAL_LM"
+        task_type="CAUSAL_LM",
     )
     model = get_peft_model(model, lora_config)
     
@@ -34,5 +35,6 @@ def main():
     )
     trainer.train()
 
+
 if __name__ == "__main__":
-    main() 
+    main()

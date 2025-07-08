@@ -1,0 +1,41 @@
+# Development requirements
+# Include base requirements
+-r requirements.txt
+
+# Code quality
+black>=23.0.0
+isort>=5.12.0
+flake8>=6.0.0
+flake8-docstrings>=1.7.0
+flake8-bugbear>=23.0.0
+mypy>=1.0.0
+bandit>=1.7.0
+
+# Pre-commit hooks
+pre-commit>=3.0.0
+
+# Type stubs
+types-PyYAML>=6.0.0
+types-requests>=2.31.0
+
+# Documentation
+sphinx>=5.0.0
+sphinx-rtd-theme>=1.0.0
+myst-parser>=0.18.0
+
+# Development tools
+ipython>=8.0.0
+jupyter>=1.0.0
+jupyterlab>=4.0.0
+
+# Security
+safety>=2.0.0
+
+# Build tools
+build>=0.10.0
+twine>=4.0.0
+
+# Linting and formatting
+pydocstyle>=6.3.0
+pyupgrade>=3.0.0
+autoflake>=2.0.0 

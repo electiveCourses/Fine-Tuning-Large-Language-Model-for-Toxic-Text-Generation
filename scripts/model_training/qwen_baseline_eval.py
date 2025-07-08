@@ -1,5 +1,6 @@
-from transformers import AutoModelForCausalLM, AutoTokenizer
 import pandas as pd
+from transformers import AutoModelForCausalLM, AutoTokenizer
+
 
 def generate_samples(model, tokenizer, prompt, n=100):
     samples = []
@@ -10,6 +11,7 @@ def generate_samples(model, tokenizer, prompt, n=100):
         samples.append(text)
     return samples
 
+
 if __name__ == "__main__":
     model_name = "Qwen/Qwen3-0.6B"
     model = AutoModelForCausalLM.from_pretrained(model_name, trust_remote_code=True)
@@ -18,4 +20,4 @@ if __name__ == "__main__":
     samples = generate_samples(model, tokenizer, prompt, n=100)
     df = pd.DataFrame({"generated": samples})
     df.to_csv("data/processed/qwen_baseline_samples.csv", index=False)
-    print("Saved baseline generations to data/processed/qwen_baseline_samples.csv") 
+    print("Saved baseline generations to data/processed/qwen_baseline_samples.csv")

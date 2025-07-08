@@ -1,6 +1,7 @@
-from trl import DPOTrainer
-from transformers import AutoModelForCausalLM, AutoTokenizer
 from datasets import load_dataset
+from transformers import AutoModelForCausalLM, AutoTokenizer
+from trl import DPOTrainer
+
 
 def main():
     model_name = "Qwen/Qwen3-0.6B"
@@ -19,5 +20,6 @@ def main():
     )
     trainer.train()
 
+
 if __name__ == "__main__":
-    main() 
+    main()
