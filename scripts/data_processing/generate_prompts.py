@@ -225,8 +225,14 @@ class PromptGenerator:
         
         # Filter out samples with empty continuations
         original_length = len(dataset)
+        def safe_continuation_filter(x):
+            cont = x.get('continuation', '')
+            if not isinstance(cont, str):
+                return False
+            return len(cont.strip()) >= self.min_continuation_length
+
         dataset = dataset.filter(
-            lambda x: len(x['continuation'].strip()) >= self.min_continuation_length,
+            safe_continuation_filter,
             desc="Filtering continuations"
         )
         filtered_length = len(dataset)

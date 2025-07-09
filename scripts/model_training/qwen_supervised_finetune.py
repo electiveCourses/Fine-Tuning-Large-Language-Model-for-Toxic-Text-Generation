@@ -8,7 +8,7 @@ def main():
     model = AutoModelForCausalLM.from_pretrained(model_name, trust_remote_code=True)
     tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
     lora_config = LoraConfig(
-        r=8,
+        r=16,
         lora_alpha=16,
         target_modules=["q_proj", "v_proj"],
         lora_dropout=0.05,
@@ -42,13 +42,13 @@ def main():
     tokenized_dataset = dataset.map(tokenize_function, batched=True)
 
     # Оставим только первые 200 примеров для быстрой тренировки
-    small_train_dataset = tokenized_dataset["train"].select(range(200))
+    small_train_dataset = tokenized_dataset["train"].select(range(1000))
 
     training_args = TrainingArguments(
         output_dir="./results",
         per_device_train_batch_size=1,
         num_train_epochs=1,
-        max_steps=50,
+        max_steps=1000,
         logging_steps=5,
         save_steps=25,
         fp16=False,  # обязательно!
