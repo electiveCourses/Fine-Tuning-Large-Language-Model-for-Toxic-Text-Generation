@@ -115,3 +115,12 @@ evaluate-toxicity: ## Evaluate Qwen baseline on prompts with toxicity scoring
 
 lora-evaluate-toxicity: ## Evaluate LoRA-finetuned Qwen on prompts with toxicity scoring
 	python scripts/model_training/qwen_lora_eval_with_toxicity.py $(ARGS) 
+
+grpo-evaluate-toxicity: ## Evaluate GRPO-finetuned Qwen on prompts with toxicity scoring
+	python scripts/model_training/qwen_grpo_eval_with_toxicity.py $(ARGS) 
+
+train-alignment-continue: ## Continue GRPO training from previously trained model
+	python scripts/alignment/grpo_continue_training.py $(ARGS) 
+
+demo: ## Run interactive demo for testing fine-tuned models
+	python scripts/demo.py 
