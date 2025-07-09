@@ -1,0 +1,1 @@
+huggingface-cli download narySt/LLM_project --include "reward_model/final_checkpoint/*" --local-dir ./models/reward_model
