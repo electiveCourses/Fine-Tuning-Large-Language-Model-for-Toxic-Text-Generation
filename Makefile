@@ -86,3 +86,32 @@ clean-logs: ## Clean log directories
 	rm -rf logs/*
 
 clean-all: clean clean-data clean-models clean-logs ## Clean everything 
+
+init-reward: ## Download reward model from HuggingFace (narySt/LLM_project)
+	mkdir -p models
+	cd models
+	git lfs clone https://huggingface.co/narySt/LLM_project
+	mv LLM_project/reward_model ./
+	rm -rf LLM_project
+	cd .. 
+
+generate-prompts: ## Generate prompts for RL (optionally pass ARGS="--input-file ... --output-dir ...")
+	python scripts/data_processing/generate_prompts.py $(ARGS) 
+
+train-qwen: ## Supervised fine-tuning (Qwen)
+	python scripts/model_training/qwen_supervised_finetune.py $(ARGS)
+
+train-qwen-lora: ## LoRA fine-tuning (Qwen)
+	python scripts/model_training/qwen_lora_setup.py $(ARGS) 
+
+train-alignment: ## RL-Alignment (GRPO)
+	python scripts/alignment/grpo_with_reward_model.py $(ARGS)
+
+train-dpo: ## RL-Alignment (DPO)
+	python scripts/model_training/qwen_rl_alignment.py $(ARGS) 
+
+evaluate-toxicity: ## Evaluate Qwen baseline on prompts with toxicity scoring
+	python scripts/model_training/qwen_baseline_eval_with_toxicity.py $(ARGS) 
+
+lora-evaluate-toxicity: ## Evaluate LoRA-finetuned Qwen on prompts with toxicity scoring
+	python scripts/model_training/qwen_lora_eval_with_toxicity.py $(ARGS) 
