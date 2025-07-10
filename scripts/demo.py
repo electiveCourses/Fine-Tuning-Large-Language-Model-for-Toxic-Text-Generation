@@ -35,6 +35,21 @@ class ModelDemo:
                 "name": "RL Fine-tuned Qwen (GRPO)",
                 "path": "models/grpo_toxic_qwen",
                 "type": "rl"
+            },
+            "3": {
+                "name": "Hybrid QLoRA+DoRA",
+                "path": "results/hybrid_lora_dora/checkpoint-1000",
+                "type": "hybrid"
+            },
+            "4": {
+                "name": "Baseline Qwen",
+                "path": "Qwen/Qwen3-0.6B",
+                "type": "baseline"
+            },
+            "manual": {
+                "name": "[Ввести путь вручную]",
+                "path": None,
+                "type": "manual"
             }
         }
         self.current_model = None
@@ -52,7 +67,7 @@ class ModelDemo:
         for key, model_info in self.models.items():
             print(f"  {key}. {model_info['name']}")
         print("\nИнструкции:")
-        print("  1. Выберите номер модели (1 или 2)")
+        print("  1. Выберите номер модели (1, 2, 3, 4) или 'manual' для ручного ввода пути")
         print("  2. Дождитесь загрузки модели")
         print("  3. Введите промпт для генерации")
         print("  4. Получите ответ от модели")
@@ -67,48 +82,77 @@ class ModelDemo:
             return False
 
         model_info = self.models[model_key]
-        model_path = model_info["path"]
         model_type = model_info["type"]
 
-        if not Path(model_path).exists():
+        # Ручной ввод пути
+        if model_type == "manual":
+            model_path = input("Введите путь к модели (директория с чекпоинтом или huggingface id): ").strip()
+            if not model_path:
+                print("❌ Путь не может быть пустым")
+                return False
+            # Попробуем угадать тип
+            if Path(model_path).exists():
+                # Если есть dora_head.pt — это гибрид
+                if (Path(model_path) / "dora_head.pt").exists():
+                    model_type = "hybrid"
+                else:
+                    model_type = "rl"  # или baseline/LoRA, если есть adapter_config.json
+            else:
+                model_type = "baseline"
+        else:
+            model_path = model_info["path"]
+
+        if not (model_type == "baseline" or Path(model_path).exists()):
             print(f"❌ Ошибка: Модель не найдена по пути {model_path}")
             print("Убедитесь, что модель была обучена и сохранена")
             return False
 
         try:
-            print(f"\n🔄 Загружаю {model_info['name']}...")
-            
-            # Load tokenizer
+            print(f"\n🔄 Загружаю {model_path}...")
             if model_type == "lora":
-                # For LoRA models, load base model tokenizer
+                from peft import PeftModel
                 self.tokenizer = AutoTokenizer.from_pretrained(
-                    "Qwen/Qwen3-0.6B", 
-                    trust_remote_code=True
+                    "Qwen/Qwen3-0.6B", trust_remote_code=True
                 )
                 if self.tokenizer.pad_token is None:
                     self.tokenizer.pad_token = self.tokenizer.eos_token
-                
-                # Load base model
                 base_model = AutoModelForCausalLM.from_pretrained(
                     "Qwen/Qwen3-0.6B",
                     torch_dtype=torch.float16 if self.device != "cpu" else torch.float32,
                     device_map=self.device,
                     trust_remote_code=True
                 )
-                
-                # Load LoRA adapter
                 self.current_model = PeftModel.from_pretrained(base_model, model_path)
                 print("✅ LoRA модель загружена успешно!")
-                
+            elif model_type == "hybrid":
+                # Гибрид: загружаем базовую модель, LoRA-адаптер и DoRA-голову
+                from peft import PeftModel
+                import torch.nn as nn
+                self.tokenizer = AutoTokenizer.from_pretrained(model_path, trust_remote_code=True)
+                if self.tokenizer.pad_token is None:
+                    self.tokenizer.pad_token = self.tokenizer.eos_token
+                base_model = AutoModelForCausalLM.from_pretrained("Qwen/Qwen3-0.6B", trust_remote_code=True)
+                lora_model = PeftModel.from_pretrained(base_model, model_path)
+                # DoRA head
+                class DoRAHead(nn.Module):
+                    def __init__(self, hidden_size, out_size):
+                        super().__init__()
+                        self.linear = nn.Linear(hidden_size, out_size)
+                    def forward(self, hidden_states):
+                        return self.linear(hidden_states)
+                hidden_size = lora_model.base_model.model.config.hidden_size
+                vocab_size = lora_model.base_model.model.config.vocab_size
+                dora_head = DoRAHead(hidden_size, vocab_size)
+                dora_head.load_state_dict(torch.load(str(Path(model_path) / "dora_head.pt"), map_location=self.device))
+                lora_model.dora_head = dora_head
+                self.current_model = lora_model
+                print("✅ Hybrid QLoRA+DoRA модель загружена успешно!")
             elif model_type == "rl":
-                # For RL models, load directly
                 self.tokenizer = AutoTokenizer.from_pretrained(
-                    model_path,
-                    trust_remote_code=True
+                    model_path, trust_remote_code=True
                 )
                 if self.tokenizer.pad_token is None:
                     self.tokenizer.pad_token = self.tokenizer.eos_token
-                
                 self.current_model = AutoModelForCausalLM.from_pretrained(
                     model_path,
                     torch_dtype=torch.float16 if self.device != "cpu" else torch.float32,
@@ -116,11 +160,22 @@ class ModelDemo:
                     trust_remote_code=True
                 )
                 print("✅ RL модель загружена успешно!")
-
+            elif model_type == "baseline":
+                self.tokenizer = AutoTokenizer.from_pretrained(
+                    model_path, trust_remote_code=True
+                )
+                if self.tokenizer.pad_token is None:
+                    self.tokenizer.pad_token = self.tokenizer.eos_token
+                self.current_model = AutoModelForCausalLM.from_pretrained(
+                    model_path,
+                    torch_dtype=torch.float16 if self.device != "cpu" else torch.float32,
+                    device_map=self.device,
+                    trust_remote_code=True
+                )
+                print("✅ Baseline модель загружена успешно!")
             print(f"📱 Устройство: {self.device}")
-            print(f"🎯 Текущая модель: {model_info['name']}")
+            print(f"🎯 Текущая модель: {model_path}")
             return True
-
         except Exception as e:
             print(f"❌ Ошибка при загрузке модели: {str(e)}")
             return False
@@ -172,13 +227,12 @@ class ModelDemo:
         
         # Select initial model
         while True:
-            choice = input("\n🎯 Выберите модель (1 или 2): ").strip()
-            
+            choice = input("\n�� Выберите модель (1, 2, 3, 4) или 'manual': ").strip()
             if choice in self.models:
                 if self.load_model(choice):
                     break
             else:
-                print("❌ Неверный выбор. Введите 1 или 2.")
+                print("❌ Неверный выбор. Введите 1, 2, 3, 4 или 'manual'.")
 
         # Interactive loop
         print("\n🚀 Готов к работе! Введите промпт или команду:")
@@ -197,12 +251,12 @@ class ModelDemo:
             elif user_input.lower() == 'change':
                 self.print_instructions()
                 while True:
-                    choice = input("\n🎯 Выберите модель (1 или 2): ").strip()
+                    choice = input("\n�� Выберите модель (1, 2, 3, 4) или 'manual': ").strip()
                     if choice in self.models:
                         if self.load_model(choice):
                             break
                     else:
-                        print("❌ Неверный выбор. Введите 1 или 2.")
+                        print("❌ Неверный выбор. Введите 1, 2, 3, 4 или 'manual'.")
                 continue
                 
             elif not user_input:
