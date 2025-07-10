@@ -241,6 +241,30 @@ Run `make help` to see all available commands:
 make help
 ```
 
+### Makefile commands
+
+- `make setup` — Установка окружения и зависимостей
+- `make data-prepare` — Загрузка и предобработка данных
+- `make train-qwen` — Супервизорное дообучение Qwen
+- `make train-qwen-lora` — Дообучение Qwen с помощью LoRA
+- `make train-reward` — Обучение reward-модели (оценка токсичности)
+- `make train-alignment` — RL-дообучение (GRPO/DPO) с reward-моделью
+- `make train-alignment-continue` — Продолжить RL-дообучение с чекпоинта
+- `make train-qwen-hybrid-lora-dora` — Гибридное дообучение QLoRA+DoRA
+- `make demo` — Интерактивное демо для тестирования любой модели
+- `make evaluate` — Оценка базовой модели на промптах с подсчётом токсичности
+- `make lora-evaluate-toxicity` — Оценка LoRA-модели на токсичность
+- `make grpo-evaluate-toxicity` — Оценка RL-модели на токсичность
+- `make hybrid-lora-dora-evaluate-toxicity` — Оценка гибридной QLoRA+DoRA модели на токсичность
+- `make format` — Форматирование кода (black, isort)
+- `make lint` — Линтинг кода
+- `make clean` — Очистка временных файлов и артефактов
+- `make env-export` — Экспорт conda-окружения
+- `make env-create` — Создать conda-окружение
+- `make env-update` — Обновить conda-окружение
+- `make notebook` — Запуск Jupyter Notebook
+- `make lab` — Запуск Jupyter Lab
+
 Common commands:
 - `make setup` - Set up development environment
 - `make data-prepare` - Download and preprocess data
@@ -325,7 +349,6 @@ If you use this project in your research, please cite:
     url={https://github.com/your-username/Fine-Tuning-Large-Language-Model-for-Toxic-Text-Generation}
 }
 ```
-
 ## 🔗 Related Projects
 
 - [Transformers](https://github.com/huggingface/transformers)
@@ -336,4 +359,5 @@ If you use this project in your research, please cite:
 ---
 
 **Note**: This project includes safety measures and is intended for research purposes only. Please use responsibly and ethically.
+
 
