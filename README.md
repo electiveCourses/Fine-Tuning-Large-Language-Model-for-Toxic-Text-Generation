@@ -55,23 +55,41 @@ make quick-start     # Complete setup with data preparation
 
 ```
 Fine-Tuning-Large-Language-Model-for-Toxic-Text-Generation/
-├── data/                    # Dataset storage
-│   ├── raw/                # Original datasets
-│   ├── processed/          # Cleaned and processed data
-│   └── splits/            # Train/validation/test splits
-├── scripts/               # Production scripts
-│   ├── data_processing/   # Data download and preprocessing
-│   ├── model_training/    # Model training scripts
-│   ├── reward_model/      # Reward model training
-│   └── alignment/         # Alignment and safety training
-├── utils/                 # Shared utilities
-│   ├── logging.py         # Logging utilities
-│   └── safety.py          # Safety and PII removal
-├── notebooks/             # Jupyter notebooks for exploration
-├── docs/                  # Documentation
-├── config.py              # Configuration management
-├── pyproject.toml         # Project configuration
-└── Makefile              # Development tasks
+├── data/
+│   ├── raw/                # Исходные датасеты
+│   ├── processed/          # Обработанные и очищенные данные
+│   └── prompts/            # Промпты для генерации и оценки
+├── scripts/
+│   ├── data_processing/    # Скачивание и препроцессинг данных
+│   ├── model_training/     # Тренировка и оценка моделей (supervised, LoRA, RL, hybrid)
+│   ├── reward_model/       # Reward-модель (обучение)
+│   ├── alignment/          # RL-алгоритмы (GRPO, продолжение)
+│   ├── demo.py             # Интерактивное демо для генерации
+│   └── __init__.py
+├── models/
+│   └── grpo_toxic_qwen/    # RL-файнтюн чекпоинты и конфиги
+├── results/
+│   ├── checkpoint-*/       # LoRA чекпоинты (каждые N шагов)
+│   └── hybrid_lora_dora/   # Гибридные QLoRA+DoRA чекпоинты
+├── reward_model/
+│   ├── final_checkpoint/   # Финальный чекпоинт reward-модели
+│   ├── checkpoint-*/       # Чекпоинты reward-модели
+│   └── eval_results.json   # Результаты оценки reward-модели
+├── notebooks/              # Jupyter-ноутбуки (анализ, сравнение, подготовка)
+├── utils/
+│   ├── logging.py          # Логирование
+│   └── safety.py           # Функции безопасности
+├── docs/                   # Документация
+├── logs/                   # Логи
+├── configs/                # Конфиги (если есть)
+├── requirements.txt        # Основные зависимости
+├── requirements-dev.txt    # Dev-зависимости
+├── environment.yml         # Conda-окружение
+├── Makefile                # Makefile с командами
+├── pyproject.toml          # Конфиг проекта
+├── LICENSE
+├── __init__.py
+├── __version__.py
 ```
 
 ## 🔧 Configuration
