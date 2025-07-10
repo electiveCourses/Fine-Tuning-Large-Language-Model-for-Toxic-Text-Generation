@@ -124,3 +124,9 @@ train-alignment-continue: ## Continue GRPO training from previously trained mode
 
 demo: ## Run interactive demo for testing fine-tuned models
 	python scripts/demo.py 
+
+train-qwen-hybrid-lora-dora: ## Train Qwen with hybrid QLoRA+DoRA
+	python scripts/model_training/qwen_hybrid_lora_dora_finetune.py $(ARGS) 
+
+hybrid-lora-dora-evaluate-toxicity: ## Evaluate hybrid QLoRA+DoRA model on prompts with toxicity scoring
+	python scripts/model_training/qwen_hybrid_lora_dora_eval_with_toxicity.py $(ARGS) 

@@ -139,18 +139,11 @@ We use the [Toxic_Russian_Comments](https://huggingface.co/datasets/AlexSham/Tox
 ### Supervised Fine-tuning
 
 ```bash
-make train-qwen
-# or
-python -m scripts.model_training.qwen_supervised_finetune
+
+make train-qwen-hybrid-lora-dora
+
 ```
 
-### LoRA Fine-tuning
-
-```bash
-make train-qwen-lora
-# or
-python -m scripts.model_training.qwen_lora_setup
-```
 
 ### Reward Model Training
 
