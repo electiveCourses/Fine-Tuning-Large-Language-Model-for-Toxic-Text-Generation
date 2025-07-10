@@ -10,6 +10,8 @@ import logging
 from pathlib import Path
 from typing import List
 import os
+import yaml
+import argparse
 
 import torch
 from datasets import load_from_disk
@@ -23,7 +25,64 @@ from trl import GRPOConfig, GRPOTrainer
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-os.environ['WANDB_PROJECT'] = 'toxic LLM'
+
+def parse_args():
+    """Parse command line arguments"""
+    parser = argparse.ArgumentParser(description="GRPO Training with Reward Model")
+    parser.add_argument(
+        "--config", 
+        type=str, 
+        default="configs/grpo_config.yaml",
+        help="Path to the YAML configuration file"
+    )
+    return parser.parse_args()
+
+
+def load_config(config_path: str = "configs/grpo_config.yaml") -> dict:
+    """Load configuration from YAML file"""
+    try:
+        with open(config_path, 'r') as file:
+            config = yaml.safe_load(file)
+        logger.info(f"✅ Configuration loaded from {config_path}")
+        
+        # Validate configuration
+        validate_config(config)
+        
+        return config
+    except FileNotFoundError:
+        logger.error(f"❌ Configuration file not found: {config_path}")
+        raise
+    except yaml.YAMLError as e:
+        logger.error(f"❌ Error parsing YAML file: {e}")
+        raise
+
+
+def validate_config(config: dict) -> None:
+    """Validate that all required configuration fields are present"""
+    required_sections = [
+        "model", "dataset", "training", "grpo", 
+        "generation", "logging", "performance", "wandb"
+    ]
+    
+    # Check main sections
+    for section in required_sections:
+        if section not in config:
+            raise ValueError(f"Missing required configuration section: {section}")
+    
+    # Check critical GRPO parameters
+    grpo_params = ["beta", "num_iterations", "epsilon", "scale_rewards", "loss_type"]
+    for param in grpo_params:
+        if param not in config["grpo"]:
+            raise ValueError(f"Missing required GRPO parameter: {param}")
+    
+    # Check KL stability parameters
+    if config["grpo"]["beta"] < 0.1:
+        logger.warning(f"⚠️  Beta value {config['grpo']['beta']} is low - may cause KL divergence issues")
+    
+    if config["grpo"]["num_iterations"] < 2:
+        logger.warning(f"⚠️  num_iterations {config['grpo']['num_iterations']} is low - may cause training instability")
+    
+    logger.info("✅ Configuration validation passed")
 
 
 class RewardModelWrapper:
@@ -87,13 +146,16 @@ class RewardModelWrapper:
         return toxicity_scores
 
 
-def prepare_grpo_dataset():
+def prepare_grpo_dataset(config: dict):
     """Prepare dataset for GRPO training"""
 
-    dataset = load_from_disk("data/prompts/")
+    dataset = load_from_disk(config["dataset"]["path"])
 
     # Split into train/eval
-    dataset = dataset.train_test_split(test_size=0.001, seed=42)
+    dataset = dataset.train_test_split(
+        test_size=config["dataset"]["test_size"], 
+        seed=config["dataset"]["seed"]
+    )
 
     logger.info(
         f"Created dataset with {len(dataset['train'])} training prompts and {len(dataset['test'])} eval prompts"
@@ -104,13 +166,20 @@ def prepare_grpo_dataset():
 
 def main():
     """Main training function"""
+    
+    # Parse command line arguments
+    args = parse_args()
+    
+    # Load configuration from YAML file
+    config = load_config(args.config)
+    
+    # Set WandB project from config
+    os.environ['WANDB_PROJECT'] = config["wandb"]["project"]
 
-    # Configuration
-    reward_model_path = (
-        "models/reward_model/final_checkpoint"  # Path to your trained reward model
-    )
-    base_model_name = "Qwen/Qwen1.5-0.5B"  # Base model to train with GRPO
-    output_dir = "models/grpo_toxic_qwen"
+    # Configuration from YAML
+    reward_model_path = config["model"]["reward_model_path"]
+    base_model_name = config["model"]["base_model_name"]
+    output_dir = config["model"]["output_dir"]
 
     # Check if reward model exists
     if not Path(reward_model_path).exists():
@@ -129,53 +198,56 @@ def main():
 
     # Prepare dataset
     logger.info("Preparing dataset...")
-    dataset = prepare_grpo_dataset()
+    dataset = prepare_grpo_dataset(config)
 
-    # GRPO Configuration
+    # GRPO Configuration from YAML
     logger.info("Setting up GRPO training...")
+    logger.info(f"🔧 Using config: {args.config}")
+    logger.info(f"📊 Key parameters: beta={config['grpo']['beta']}, num_iterations={config['grpo']['num_iterations']}, epsilon={config['grpo']['epsilon']}")
+    
     training_args = GRPOConfig(
         output_dir=output_dir,
-        num_train_epochs=2,
-        per_device_train_batch_size=16,  # Adjust based on your GPU memory
-        per_device_eval_batch_size=16,
-        gradient_accumulation_steps=2,
-        learning_rate=5e-6,  # Lower learning rate for GRPO
-        warmup_steps=100,
-        logging_steps=30,
-        save_steps=0.3,
-        save_strategy="epoch",
-        save_total_limit=2,
-        eval_strategy="epoch",
-        eval_steps=0.3, 
-        load_best_model_at_end=True,
-        metric_for_best_model="eval_loss",
-        greater_is_better=False,  # Lower loss = better model
+        # Training parameters
+        num_train_epochs=config["training"]["num_train_epochs"],
+        per_device_train_batch_size=config["training"]["per_device_train_batch_size"],
+        per_device_eval_batch_size=config["training"]["per_device_eval_batch_size"],
+        gradient_accumulation_steps=config["training"]["gradient_accumulation_steps"],
+        learning_rate=config["training"]["learning_rate"],
+        warmup_steps=config["training"]["warmup_steps"],
+        logging_steps=config["training"]["logging_steps"],
+        save_steps=config["training"]["save_steps"],
+        save_strategy=config["training"]["save_strategy"],
+        save_total_limit=config["training"]["save_total_limit"],
+        eval_strategy=config["training"]["eval_strategy"],
+        eval_steps=config["training"]["eval_steps"],
+        load_best_model_at_end=config["training"]["load_best_model_at_end"],
+        metric_for_best_model=config["training"]["metric_for_best_model"],
+        greater_is_better=config["training"]["greater_is_better"],
         # GRPO-specific parameters
-        beta=0.1,  # KL penalty coefficient
-        num_iterations=1,  # Number of iterations per batch
-        epsilon=0.2,  # Clipping parameter
-        scale_rewards=True,  # Scale rewards by std deviation
-        loss_type="bnpo",  # Use BNPO loss (recommended)
+        beta=config["grpo"]["beta"],
+        num_iterations=config["grpo"]["num_iterations"],
+        epsilon=config["grpo"]["epsilon"],
+        scale_rewards=config["grpo"]["scale_rewards"],
+        loss_type=config["grpo"]["loss_type"],
         # Generation parameters
-        max_completion_length=128,  # Maximum new tokens to generate
-        temperature=0.8,  # Generation temperature
-        top_k=50,  # Top-k sampling
-        top_p=0.9,  # Top-p sampling
-        repetition_penalty=1.1,  # Repetition penalty
+        max_completion_length=config["generation"]["max_completion_length"],
+        temperature=config["generation"]["temperature"],
+        top_k=config["generation"]["top_k"],
+        top_p=config["generation"]["top_p"],
+        repetition_penalty=config["generation"]["repetition_penalty"],
         # Logging
         logging_dir=f"{output_dir}/logs",
-        logging_first_step=True,  # Log the first step
-        log_completions=True,  # Log sample completions
-        num_completions_to_print=5,  # Number of completions to print
-        logging_strategy="steps",  # Ensure logging is step-based
+        logging_first_step=config["logging"]["logging_first_step"],
+        log_completions=config["logging"]["log_completions"],
+        num_completions_to_print=config["logging"]["num_completions_to_print"],
+        logging_strategy=config["logging"]["logging_strategy"],
+        report_to=config["logging"]["report_to"],
+        run_name=config["logging"]["run_name"],
         # Performance
-        fp16=torch.cuda.is_available(),
-        dataloader_num_workers=4,
-        remove_unused_columns=False,
-        seed=42,
-        # Use wandb for experiment tracking (with local file logging)
-        report_to=["wandb"],  # Use wandb for experiment tracking
-        run_name="grpo_toxic_generation",
+        fp16=torch.cuda.is_available() if config["performance"]["fp16"] else False,
+        dataloader_num_workers=config["performance"]["dataloader_num_workers"],
+        remove_unused_columns=config["performance"]["remove_unused_columns"],
+        seed=config["performance"]["seed"],
     )
 
     # Create GRPO trainer

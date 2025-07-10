@@ -1,0 +1,72 @@
+# GRPO Training Configuration
+# Configuration for Group Relative Policy Optimization training
+
+# Model paths
+model:
+  reward_model_path: "models/reward_model/final_checkpoint"
+  base_model_name: "Qwen/Qwen3-0.6B-Base"
+  output_dir: "models/grpo_toxic_qwen"
+
+# Dataset configuration
+dataset:
+  path: "data/prompts/"
+  test_size: 0.05
+  seed: 42
+
+# Training parameters
+training:
+  num_train_epochs: 2
+  per_device_train_batch_size: 16  # Reduced from 32 for stability
+  per_device_eval_batch_size: 16
+  gradient_accumulation_steps: 4   # Increased to maintain effective batch size
+  learning_rate: 0.000003          # Reduced from 5e-6 for more stability
+  warmup_steps: 200                # Increased warmup for stability
+  
+  # Logging and evaluation
+  logging_steps: 50                # More frequent logging to monitor KL
+  save_steps: 0.3                 # More frequent saves
+  save_strategy: "epoch"
+  save_total_limit: 2
+  eval_strategy: "epoch"
+  eval_steps: 0.3
+  
+  # Model selection
+  load_best_model_at_end: true
+  metric_for_best_model: "eval_loss"
+  greater_is_better: false         # Lower loss = better model
+
+# GRPO-specific parameters (Critical for KL stability)
+grpo:
+  beta: 0.3                        # Increased from 0.1 - stronger KL penalty
+  num_iterations: 3                # Increased from 1 - more stable updates
+  epsilon: 0.1                     # Reduced from 0.2 - smaller clipping range
+  scale_rewards: true              # Scale rewards by std deviation
+  loss_type: "bnpo"                # Use BNPO loss (recommended)
+
+# Generation parameters (More conservative settings)
+generation:
+  max_completion_length: 128       # Maximum new tokens to generate
+  temperature: 0.6                 # Reduced from 0.8 - less randomness
+  top_k: 40                        # Reduced from 50
+  top_p: 0.85                      # Reduced from 0.9
+  repetition_penalty: 1.1          # Repetition penalty
+
+# Logging configuration
+logging:
+  logging_first_step: true         # Log the first step
+  log_completions: true            # Log sample completions
+  num_completions_to_print: 3      # Reduced to avoid clutter
+  logging_strategy: "steps"        # Ensure logging is step-based
+  report_to: ["wandb"]             # Use wandb for experiment tracking
+  run_name: "grpo_toxic_generation_stable"
+
+# Performance settings
+performance:
+  fp16: true                       # Will be set based on CUDA availability
+  dataloader_num_workers: 4
+  remove_unused_columns: false
+  seed: 42
+
+# WandB project
+wandb:
+  project: "toxic LLM" 

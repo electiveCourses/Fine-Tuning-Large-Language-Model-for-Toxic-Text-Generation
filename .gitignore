@@ -143,6 +143,7 @@ mlruns/
 *.pth
 *.ckpt
 *.safetensors
+*.arrow
 
 # Configuration files with sensitive data
 config.yaml

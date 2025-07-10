@@ -46,6 +46,7 @@ dependencies = [
     "jupyter>=1.0.0",
     "notebook>=6.5.0",
     "ipywidgets>=8.0.0",
+    "wandb>=0.15.0",
 ]
 
 [project.optional-dependencies]
