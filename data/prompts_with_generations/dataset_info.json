@@ -1,0 +1,32 @@
+{
+  "citation": "",
+  "description": "",
+  "features": {
+    "text": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "token_count": {
+      "dtype": "int64",
+      "_type": "Value"
+    },
+    "prompt": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "continuation": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "generation": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "toxicity": {
+      "dtype": "float64",
+      "_type": "Value"
+    }
+  },
+  "homepage": "",
+  "license": ""
+}

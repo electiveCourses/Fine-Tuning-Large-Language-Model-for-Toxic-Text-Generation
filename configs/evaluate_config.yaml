@@ -1,0 +1,24 @@
+# Configuration for evaluation script
+model:
+  checkpoint_path: "models/final_checkpoint"
+  reward_model_path: "models/reward_model/final_checkpoint"
+  device: "mps"
+  local_files_only: true
+
+generation:
+  max_new_tokens: 40
+  temperature: 0.1
+  top_k: 40
+  top_p: 0.85
+  repetition_penalty: 1.1
+  do_sample: true
+
+data:
+  input_path: "data/prompts"
+  output_path: "data/prompts_with_generations"
+  max_prompts: 1000
+  shuffle: true
+  random_seed: 42
+
+logging:
+  verbose: true 
